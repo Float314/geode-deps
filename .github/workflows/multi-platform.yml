@@ -38,13 +38,6 @@ jobs:
             artifact_name: linux-gcc-cxx23
             shell: bash
 
-          # ── Windows — clang-cl ─────────────────────────────────────────────
-          - name: Windows (clang-cl)
-            os: windows-2022
-            artifact_name: windows-clang-cl
-            use_clang_cl: true
-            shell: pwsh
-
           # ── Windows — MSVC ─────────────────────────────────────────────────
           - name: Windows (MSVC)
             os: windows-2022
@@ -104,17 +97,9 @@ jobs:
 
       # ── Configure — Windows MSVC ──────────────────────────────────────────────
       - name: Configure CMake (MSVC)
-        if: runner.os == 'Windows' && !matrix.use_clang_cl
+        if: runner.os == 'Windows'
         run: |
           cmake -B build `
-            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
-
-      # ── Configure — Windows clang-cl ─────────────────────────────────────────
-      - name: Configure CMake (clang-cl)
-        if: runner.os == 'Windows' && matrix.use_clang_cl
-        run: |
-          cmake -B build `
-            -T ClangCL `
             -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
 
       # ── Build — Unix ──────────────────────────────────────────────────────────
