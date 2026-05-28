@@ -1,5 +1,5 @@
 name: C++ Multi-Platform Build
- 
+
 on:
   push:
     branches: [ "main", "master", "develop" ]
@@ -8,202 +8,163 @@ on:
   pull_request:
     branches: [ "main", "master", "develop" ]
   workflow_dispatch:
- 
+
 env:
   BUILD_TYPE: Release
-  CMAKE_VERSION: '3.28.0'
- 
+
 jobs:
   build:
-    name: ${{ matrix.os }} | ${{ matrix.compiler }}
+    name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
- 
+
     strategy:
       fail-fast: false
       matrix:
         include:
-          # ── Linux ──────────────────────────────────────────────────────────
-          - os: ubuntu-24.04
-            compiler: gcc-13
-            cc: gcc-13
-            cxx: g++-13
-            artifact_name: linux-gcc13
- 
-          - os: ubuntu-24.04
-            compiler: clang-17
-            cc: clang-17
-            cxx: clang++-17
-            artifact_name: linux-clang17
- 
-          # ── macOS ──────────────────────────────────────────────────────────
-          - os: macos-14          # Apple Silicon (M1/M2)
-            compiler: apple-clang
+          # ── macOS — Apple Clang ────────────────────────────────────────────
+          - name: macOS (Apple Clang)
+            os: macos-14
             cc: clang
             cxx: clang++
             artifact_name: macos-arm64
- 
-          - os: macos-13          # Intel
-            compiler: apple-clang
-            cc: clang
-            cxx: clang++
-            artifact_name: macos-x86_64
- 
-          # ── Windows ────────────────────────────────────────────────────────
-          - os: windows-2022
-            compiler: msvc
+            shell: bash
+
+          # ── Ubuntu — GCC 23 (GCC 13 + C++23 standard) ─────────────────────
+          - name: Ubuntu (GCC / C++23)
+            os: ubuntu-24.04
+            cc: gcc-13
+            cxx: g++-13
+            cxx_standard: 23
+            artifact_name: linux-gcc-cxx23
+            shell: bash
+
+          # ── Windows — clang-cl ─────────────────────────────────────────────
+          - name: Windows (clang-cl)
+            os: windows-2022
+            artifact_name: windows-clang-cl
+            use_clang_cl: true
+            shell: pwsh
+
+          # ── Windows — MSVC ─────────────────────────────────────────────────
+          - name: Windows (MSVC)
+            os: windows-2022
             artifact_name: windows-msvc
- 
-          - os: windows-2022
-            compiler: mingw
-            cc: gcc
-            cxx: g++
-            artifact_name: windows-mingw
- 
+            use_clang_cl: false
+            shell: pwsh
+
+    defaults:
+      run:
+        shell: ${{ matrix.shell }}
+
     steps:
-      # ── Checkout ────────────────────────────────────────────────────────────
+      # ── Checkout ─────────────────────────────────────────────────────────────
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           submodules: recursive
           fetch-depth: 0
- 
-      # ── Cache: CMake deps / build dirs ──────────────────────────────────────
-      - name: Cache CMake dependency downloads
+
+      # ── Cache build dependencies ──────────────────────────────────────────────
+      - name: Cache CMake build deps
         uses: actions/cache@v4
         with:
           path: |
             ~/.cmake
             ${{ github.workspace }}/build/_deps
-          key: cmake-deps-${{ matrix.artifact_name }}-${{ hashFiles('**/CMakeLists.txt', '**/cmake/**') }}
-          restore-keys: |
-            cmake-deps-${{ matrix.artifact_name }}-
- 
-      # ── Compiler setup: Linux GCC ───────────────────────────────────────────
-      - name: Install GCC 13 (Linux)
-        if: runner.os == 'Linux' && matrix.compiler == 'gcc-13'
+          key: cmake-${{ matrix.artifact_name }}-${{ hashFiles('**/CMakeLists.txt', '**/cmake/**') }}
+          restore-keys: cmake-${{ matrix.artifact_name }}-
+
+      # ── Linux: ensure GCC 13 present ─────────────────────────────────────────
+      - name: Install GCC 13 (Ubuntu)
+        if: runner.os == 'Linux'
         run: |
           sudo apt-get update -y
-          sudo apt-get install -y gcc-13 g++-13
- 
-      # ── Compiler setup: Linux Clang ─────────────────────────────────────────
-      - name: Install Clang 17 (Linux)
-        if: runner.os == 'Linux' && matrix.compiler == 'clang-17'
-        run: |
-          sudo apt-get update -y
-          sudo apt-get install -y clang-17 clang++-17 lld-17
- 
-      # ── Compiler setup: MinGW ───────────────────────────────────────────────
-      - name: Set up MinGW (Windows)
-        if: matrix.compiler == 'mingw'
-        uses: msys2/setup-msys2@v2
-        with:
-          msystem: UCRT64
-          update: true
-          install: >-
-            mingw-w64-ucrt-x86_64-gcc
-            mingw-w64-ucrt-x86_64-cmake
-            mingw-w64-ucrt-x86_64-ninja
- 
-      # ── Configure (MSVC) ────────────────────────────────────────────────────
-      - name: Configure CMake (MSVC)
-        if: matrix.compiler == 'msvc'
-        shell: pwsh
-        run: |
-          cmake -B build `
-            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} `
-            -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/install"
- 
-      # ── Configure (MinGW / MSYS2) ───────────────────────────────────────────
-      - name: Configure CMake (MinGW)
-        if: matrix.compiler == 'mingw'
-        shell: msys2 {0}
-        run: |
-          cmake -B build \
-            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
-            -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/install" \
-            -G "Ninja" \
-            -DCMAKE_C_COMPILER=gcc \
-            -DCMAKE_CXX_COMPILER=g++
- 
-      # ── Configure (Linux / macOS) ───────────────────────────────────────────
+          sudo apt-get install -y gcc-13 g++-13 ninja-build
+
+      # ── macOS: ensure Ninja present ───────────────────────────────────────────
+      - name: Install Ninja (macOS)
+        if: runner.os == 'macOS'
+        run: brew install ninja
+
+      # ── Configure — Unix (macOS + Linux) ─────────────────────────────────────
       - name: Configure CMake (Unix)
         if: runner.os != 'Windows'
         env:
           CC: ${{ matrix.cc }}
           CXX: ${{ matrix.cxx }}
         run: |
+          EXTRA_FLAGS=""
+          if [ -n "${{ matrix.cxx_standard }}" ]; then
+            EXTRA_FLAGS="-DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }}"
+          fi
           cmake -B build \
+            -G Ninja \
             -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
-            -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/install" \
-            -G "Ninja"
- 
-      # ── Build (MSVC) ────────────────────────────────────────────────────────
-      - name: Build (MSVC)
-        if: matrix.compiler == 'msvc'
-        shell: pwsh
+            $EXTRA_FLAGS
+
+      # ── Configure — Windows MSVC ──────────────────────────────────────────────
+      - name: Configure CMake (MSVC)
+        if: runner.os == 'Windows' && !matrix.use_clang_cl
         run: |
-          cmake --build build --config ${{ env.BUILD_TYPE }} --parallel
- 
-      # ── Build (MinGW) ───────────────────────────────────────────────────────
-      - name: Build (MinGW)
-        if: matrix.compiler == 'mingw'
-        shell: msys2 {0}
-        run: cmake --build build --parallel
- 
-      # ── Build (Unix) ────────────────────────────────────────────────────────
+          cmake -B build `
+            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
+
+      # ── Configure — Windows clang-cl ─────────────────────────────────────────
+      - name: Configure CMake (clang-cl)
+        if: runner.os == 'Windows' && matrix.use_clang_cl
+        run: |
+          cmake -B build `
+            -T ClangCL `
+            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
+
+      # ── Build — Unix ──────────────────────────────────────────────────────────
       - name: Build (Unix)
         if: runner.os != 'Windows'
         run: cmake --build build --parallel
- 
-      # ── Test ─────────────────────────────────────────────────────────────────
-      - name: Run tests (MSVC)
-        if: matrix.compiler == 'msvc'
+
+      # ── Build — Windows ───────────────────────────────────────────────────────
+      - name: Build (Windows)
+        if: runner.os == 'Windows'
+        run: cmake --build build --config ${{ env.BUILD_TYPE }} --parallel
+
+      # ── Test — Unix ───────────────────────────────────────────────────────────
+      - name: Test (Unix)
+        if: runner.os != 'Windows'
         working-directory: build
-        shell: pwsh
+        run: ctest --output-on-failure --parallel 4
+
+      # ── Test — Windows ────────────────────────────────────────────────────────
+      - name: Test (Windows)
+        if: runner.os == 'Windows'
+        working-directory: build
         run: ctest --build-config ${{ env.BUILD_TYPE }} --output-on-failure --parallel 4
- 
-      - name: Run tests (MinGW)
-        if: matrix.compiler == 'mingw'
-        working-directory: build
-        shell: msys2 {0}
-        run: ctest --output-on-failure --parallel 4
- 
-      - name: Run tests (Unix)
-        if: runner.os != 'Windows'
-        working-directory: build
-        run: ctest --output-on-failure --parallel 4
- 
-      # ── Install / stage binaries ─────────────────────────────────────────────
-      - name: Install binaries (MSVC)
-        if: matrix.compiler == 'msvc'
-        shell: pwsh
-        run: cmake --install build --config ${{ env.BUILD_TYPE }}
- 
-      - name: Install binaries (MinGW)
-        if: matrix.compiler == 'mingw'
-        shell: msys2 {0}
-        run: cmake --install build
- 
-      - name: Install binaries (Unix)
-        if: runner.os != 'Windows'
-        run: cmake --install build
- 
-      # ── Upload build artifacts ───────────────────────────────────────────────
+
+      # ── Upload binaries directly from build/ ──────────────────────────────────
       - name: Upload binaries
         uses: actions/upload-artifact@v4
         with:
           name: binaries-${{ matrix.artifact_name }}-${{ github.sha }}
-          path: ${{ github.workspace }}/install/**
-          if-no-files-found: error
+          path: |
+            build/**/*.exe
+            build/**/*.dll
+            build/**/*.so
+            build/**/*.dylib
+            build/**/bin/*
+            build/**/lib/*
+            !build/_deps/**
+            !build/**/*.dir/**
+            !build/**/*.ninja
+            !build/**/*.cmake
+          if-no-files-found: warn
           retention-days: 30
- 
-  # ── Collect all binaries into a single release asset bundle ─────────────────
-  package:
-    name: Package release artifacts
+
+  # ── Release: bundle & publish on v* tags ─────────────────────────────────────
+  release:
+    name: Publish release
     needs: build
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
- 
+
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
@@ -211,26 +172,15 @@ jobs:
           pattern: binaries-*
           path: artifacts/
           merge-multiple: false
- 
-      - name: List downloaded artifacts
-        run: find artifacts/ -type f | sort
- 
-      - name: Create per-platform archives
+
+      - name: Zip each platform
         run: |
           cd artifacts
           for dir in */; do
             platform="${dir%/}"
             zip -r "../${platform}.zip" "$dir"
-            echo "Packed: ${platform}.zip"
           done
- 
-      - name: Upload packaged release assets
-        uses: actions/upload-artifact@v4
-        with:
-          name: release-packages-${{ github.ref_name }}
-          path: "*.zip"
-          retention-days: 90
- 
+
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
