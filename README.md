@@ -1,10 +1,10 @@
 # geode-deps
 
-A CLI dependency manager for [Geode SDK](https://geode-sdk.org/) mods — because manually editing `mod.json` every time you add an API gets old fast.
+A CLI dependency manager for [Geode SDK](https://geode-sdk.org/) mods - because manually editing `mod.json` every time you add an API gets old fast.
 
 ## Install
 
-Install Binaries to path.
+Install Binaries to the system PATH. (installation steps soon)
 
 ## Usage
 
@@ -45,6 +45,8 @@ GNU Lesser General Public License for more details.
 
 You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+<img src="https://www.gnu.org/graphics/lgplv3-with-text-154x68.png" alt="All hail GNU LGPL v3">
 
 ## Contributing
 
