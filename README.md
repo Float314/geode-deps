@@ -24,7 +24,7 @@ The Geode ecosystem has a growing number of mod APIs (~19 and not 1900 and count
 
 ## Dependencies
 
-- Matjson (For JSON, thought would be good if not used Boost.JSON lol)
+- Matjson (For JSON, thought would be good cause Geode-sdk Tools)
 - Result (idk but req.d by matjson)
 
 ## License
