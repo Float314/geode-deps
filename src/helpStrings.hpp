@@ -19,7 +19,7 @@ remove [id]    Remove a dependency
 help           Shows this message
 help --license Shows under what license is this tool 
                under. (GNU LGPL)
-               
+
     )md";
     std::cout << fmtstr << std::endl;
 }
@@ -46,8 +46,13 @@ GNU Lesser General Public License for more details.
 
 You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
-    )md", static_cast<int>(year));
 
-    std::cout << licStr << std::endl;    
+)md", static_cast<int>(year));
+
+    std::cout << licStr 
+    << "\033[32mLGPL "
+    << "\033[1;92m <v3> \n"
+    << "\033[32mFree as in Freedom!"
+    << "\033[0m\n"<< std::endl;    
 }
 #endif
