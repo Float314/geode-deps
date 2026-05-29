@@ -6,7 +6,6 @@
 #include <filesystem>
 #include <matjson.hpp>
 #include "add.hpp"
-#include "static.h"
 
 namespace addDep {
 
