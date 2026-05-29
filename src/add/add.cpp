@@ -6,43 +6,29 @@
 #include <filesystem>
 #include <matjson.hpp>
 #include "add.hpp"
+#include "static.h"
 
 namespace addDep {
 
-    /// @brief Checks if Mod exist on the servers
-    /// @param mod_id 
-    /// @return -1 if not, 0 if found, 1 if connection error1
-    int checkIfModExist(const std::string& mod_id) {
-        std::string cmd =
-            "curl --fail -s "
-            "https://api.geode-sdk.org/v1/mods/" + mod_id +
-            " > NUL 2> NUL";
+    std::string serverResponse(const char* id) {
+        /* Someone please just help me out here 
+           curl request - curl -X 'GET' 'https://api.geode-sdk.org/v1/mods/{id}' -H 'accept: application/json'
 
-        int result = std::system(cmd.c_str());
-
-        // Extract actual exit code
-        // result = result >> 8;
-
-        if (result == 22) {
-            std::cerr << "The mod appears to not exist!\n";
-            return -1;
-        }
-
-        if (result != 0) {
-            std::cerr << "Error appeared while connecting\n";
-            return 1;
-        }
-
-        return 0;
+           Then to get the JSON and the below would modify th4e JSON
+           The catch is, however, dat, shouldn't use std::system for CLI Piping (Vulnerablity issue)
+        */
     }
 
     auto modifyJSON(const std::string& id) -> int {
-        auto modExist = checkIfModExist(id);
+        auto srvrJson = serverResponse(id.c_str());
 
-        if (modExist != 0) {
-            std::cout << "Mod doesn't exist!" << std::endl;
-            return 1;
+        auto httpRes = matjson::parse(srvrJson);
+        if (!httpRes) {
+            std::cerr << "Failed to parse Server Response (application/json)" << std::endl;
         }
+        auto root = httpRes.unwrap();
+
+        matjson::Value latest = root["payload"]["versions"][0];
 
         std::ifstream inFile("mod.json");
         if (!inFile.is_open()) {
@@ -68,7 +54,7 @@ namespace addDep {
         }
 
         // set the value in the dependencies object
-        parsed["dependencies"][id] = ">=1.0.0";
+        parsed["dependencies"][id] = latest;
 
         std::ofstream outFile("mod.json");
         if (!outFile.is_open()) {

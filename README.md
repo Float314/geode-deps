@@ -20,12 +20,17 @@ Running `add` will fetch the mod's metadata and automatically update your `mod.j
 
 ## Why?
 
-The Geode ecosystem has a growing number of mod APIs (~19 and not 1900 and counting). Manually hunting down the right mod ID, version string, and JSON syntax every time you want to depend on one is tedious. This tool automates the lookup and injection so you can get back to actually building your mod.
+The Geode ecosystem has a growing number of mod APIs (19 or smth). Manually hunting down the right mod ID, version string, and JSON syntax every time you want to depend on one is tedious. This tool automates the lookup and injection so you can get back to actually building your mod.
+
+Also I Have an habit to turn everything into a CLI Tool. _(Im gonna make my own C Compiler soon)_
 
 ## Dependencies
 
-- Matjson (For JSON, thought would be good cause Geode-sdk Tools)
-- Result (idk but req.d by matjson)
+- Matjson (For JSON, thought would be good cause Geode-sdk Tools) (Under Boost Software License v1.0)
+- Result (idk but req.d by matjson) (Under Boost Software License v1.0)
+- Its own Extension
+
+### About that extension
 
 ## License
 

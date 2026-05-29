@@ -5,6 +5,6 @@
 #include <matjson.hpp>
 
 namespace addDep {
-    int checkIfModExist(const std::string& mod_id);
+    std::string serverResponse(const char* id);
     auto modifyJSON(const std::string& id) -> int;
 }

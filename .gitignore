@@ -1,2 +1,11 @@
 build/
 .vscode/
+
+mod.json
+
+# Debugging with Visual Studio
+.vs/
+out/
+
+# dude https is disgusting 
+crash.dmp
