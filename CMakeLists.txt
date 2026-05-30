@@ -5,7 +5,7 @@ cmake_minimum_required(VERSION 3.15)
 project(geode-deps
     VERSION 1.0.0
     LANGUAGES CXX
-    PROJECT_HOMEPAGE_URL https://geode-sdk.org/
+    HOMEPAGE_URL https://geode-sdk.org/
 )
 
 # C/C++ Standard (11/23 respectively)
@@ -52,7 +52,8 @@ set(SOURCES
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 
-find_package(OpenSSL REQUIRED)
+find_package(OpenSSL QUIET)
+
 target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/third_party")
 target_link_libraries(${PROJECT_NAME} PRIVATE
     mat-json
