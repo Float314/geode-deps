@@ -28,9 +28,7 @@ Also I Have an habit to turn everything into a CLI Tool. _(Im gonna make my own 
 
 - Matjson (For JSON, thought would be good cause Geode-sdk Tools) (Under Boost Software License v1.0)
 - Result (idk but req.d by matjson) (Under Boost Software License v1.0)
-- Its own Extension
-
-### About that extension
+- cpp-httplib 
 
 ## License
 
