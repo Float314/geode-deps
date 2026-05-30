@@ -6,6 +6,8 @@
 #include <filesystem>
 #include <matjson.hpp>
 #include "add.hpp"
+#define CPPHTTPLIB_OPENSSL_SUPPORT
+#include <httplib.h>
 
 namespace addDep {
 

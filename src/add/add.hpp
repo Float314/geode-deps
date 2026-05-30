@@ -3,6 +3,8 @@
 #include <sstream>
 #include <filesystem>
 #include <matjson.hpp>
+#define CPPHTTPLIB_OPENSSL_SUPPORT
+#include <httplib.h>
 
 namespace addDep {
     std::string serverResponse(const char* id);
