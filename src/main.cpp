@@ -14,19 +14,19 @@ int actX(int argc, char* argv[]) {
     auto act = parseArgs(argc, argv);
 
     switch (act) {
-        case actions::Add: 
+        case cliactions::Add: 
             addDep::modifyJSON(argv[2]);
             break;
-        case actions::Delete:
+        case cliactions::Delete:
             deleteRec::deleteKey(argv[2]);
             break;
-        case actions::Help:
+        case cliactions::Help:
             helpStr();
             break;
-        case actions::License:
+        case cliactions::License:
             licenseStr();
             break;
-        case actions::Inv: 
+        case cliactions::Inv: 
             std::cerr << "something went wrong! Exiting program." << std::endl;
             return 1;
     }

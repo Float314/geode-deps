@@ -14,18 +14,18 @@
 
 #include <string_view>
 
-actions parseArgs(int argc, char* argv[]) {
-    if (argc < 2) return actions::Inv;
+cliactions parseArgs(int argc, char* argv[]) {
+    if (argc < 2) return cliactions::Inv;
 
     std::string_view fa = argv[1];
 
-    if (fa == "add") return actions::Add;
-    else if (fa == "delete") return actions::Delete;
+    if (fa == "add") return cliactions::Add;
+    else if (fa == "delete") return cliactions::Delete;
     else if (fa == "-h" || fa == "--help" || fa == "help") {
         if (argc >= 3) {
             std::string_view sa = argv[2];
-            if (sa == "--license") return actions::License;
+            if (sa == "--license") return cliactions::License;
         }
-        return actions::Help;
-    } else return actions::Inv;
+        return cliactions::Help;
+    } else return cliactions::Inv;
 }

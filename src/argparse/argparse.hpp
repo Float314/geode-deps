@@ -1,6 +1,12 @@
+#pragma once
 #include <iostream>
+#include <iostream>
+#include "argparse.hpp"
+#include <string_view>
 
-enum class actions {
+#include <string_view>
+
+enum class cliactions {
     Add,
     Delete, 
     Help,
@@ -8,4 +14,4 @@ enum class actions {
     Inv /* Invalid safeguard */
 };
 
-actions parseArgs(int argc, char* argv[]);
+cliactions parseArgs(int argc, char* argv[]);
