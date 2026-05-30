@@ -15,14 +15,19 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Download CPM, cause this shit doesnt come bundled in 
-message("-- Downloading CPM v0.42.3")
-file(
-   DOWNLOAD
-   https://github.com/cpm-cmake/CPM.cmake/releases/download/v0.42.3/CPM.cmake
-   ${CMAKE_CURRENT_BINARY_DIR}/cmake/CPM.cmake
-)
+if(NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/cmake/CPM.cmake")
+    message("-- Downloading CPM v0.42.3")
+    file(
+        DOWNLOAD
+        https://github.com/cpm-cmake/CPM.cmake/releases/download/v0.42.3/CPM.cmake
+        ${CMAKE_CURRENT_BINARY_DIR}/cmake/CPM.cmake
+    )
+    message("-- CPM Successfully fetched!")
+else()
+    message("-- CPM is already installed")
+endif()
 include(${CMAKE_CURRENT_BINARY_DIR}/cmake/CPM.cmake)
-message("-- CPM Successfully fetched!")
+
 include(FetchContent)
 
 message("-- Fetching Dependencies ")
@@ -41,6 +46,11 @@ else()
     message("-- cpp-httplib is already on the path ${CXX_HTTPLIB_LIBHDR}. Skipping Download")
 endif()
 
+# OpenSSL
+set(OPENSSL_ROOT_DIR "C:/Program Files/OpenSSL-Win64")
+set(OPENSSL_SSL_LIBRARY "C:/Program Files/OpenSSL-Win64/lib/VC/x64/MD/libssl.lib")
+set(OPENSSL_CRYPTO_LIBRARY "C:/Program Files/OpenSSL-Win64/lib/VC/x64/MD/libcrypto.lib")
+
 CPMAddPackage("gh:geode-sdk/json@3.3.0")
 
 set(SOURCES
@@ -52,11 +62,19 @@ set(SOURCES
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 
-find_package(OpenSSL QUIET)
+message(STATUS "OpenSSL Root Dir: ${OPENSSL_ROOT_DIR}")
+message(STATUS "SSL library: ${OPENSSL_SSL_LIBRARY}")
+message(STATUS "Crypto library: ${OPENSSL_CRYPTO_LIBRARY}")
 
-target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/third_party")
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+    CPPHTTPLIB_OPENSSL_SUPPORT
+)
+target_include_directories(${PROJECT_NAME} PRIVATE 
+    "${CMAKE_CURRENT_BINARY_DIR}/third_party"
+    "C:/Program Files/OpenSSL-Win64/include"
+)
 target_link_libraries(${PROJECT_NAME} PRIVATE
     mat-json
-    OpenSSL::SSL
-    OpenSSL::Crypto
+    ${OPENSSL_SSL_LIBRARY}
+    ${OPENSSL_CRYPTO_LIBRARY}
 )

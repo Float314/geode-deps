@@ -8,20 +8,35 @@
 #include "add.hpp"
 #define CPPHTTPLIB_OPENSSL_SUPPORT
 #include <httplib.h>
+#include <format>
 
 namespace addDep {
 
     std::string serverResponse(const char* id) {
-        /* Someone please just help me out here 
-           curl request - curl -X 'GET' 'https://api.geode-sdk.org/v1/mods/{id}' -H 'accept: application/json'
+        // i had to manually write this
+        // dont get this for granted, geode devs >:(
+        httplib::SSLClient cli("api.geode-sdk.org");
 
-           Then to get the JSON and the below would modify th4e JSON
-           The catch is, however, dat, shouldn't use std::system for CLI Piping (Vulnerablity issue)
-        */
+        std::string _req = std::format("/v1/mods/{0}", id);
+        auto request = cli.Get(_req.c_str());
+        
+        if (request && request->status == 200) {
+            return request->body;
+        } 
+        else if (request->status == 404) {
+            std::cerr << "The given API Doesn't exist on the server! (HTTP Exit code 404: Not found!)" << std::endl;
+            return "{}";
+        }
+        else {
+            std::cerr << "Failed to get response from the server! Error code : " << request->status << std::endl;
+            return "{}";
+        }
     }
 
     auto modifyJSON(const std::string& id) -> int {
         auto srvrJson = serverResponse(id.c_str());
+
+        if (srvrJson == "{}") return 1;
 
         auto httpRes = matjson::parse(srvrJson);
         if (!httpRes) {
@@ -29,7 +44,7 @@ namespace addDep {
         }
         auto root = httpRes.unwrap();
 
-        matjson::Value latest = root["payload"]["versions"][0];
+        matjson::Value latest = root["payload"]["versions"][0]["version"];
 
         std::ifstream inFile("mod.json");
         if (!inFile.is_open()) {
