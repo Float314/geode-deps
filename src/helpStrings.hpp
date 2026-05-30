@@ -32,7 +32,7 @@ void licenseStr() {
 
     auto licStr = std::format(R"md(
 Licensed under the GNU Lesser General Public License v3.0
-Copyright (C) {}, Float314
+Copyright (C) {}, Float314 and contributors
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the **GNU Lesser General Public License** as published
